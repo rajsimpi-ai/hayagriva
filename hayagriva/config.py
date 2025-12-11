@@ -31,8 +31,22 @@ class RetrievalConfig:
 
 @dataclass
 class HayagrivaConfig:
-    """Aggregate configuration for the Hayagriva orchestrator."""
+    def __init__(
+        self,
+        backend="openai",
+        api_key=None,
+        model="gpt-4o-mini",
+        chunking=None,
+        models=None,
+        retrieval=None,
+    ):
+        self.backend = backend        # "openai" or "groq"
+        self.api_key = api_key        # API key for chosen backend
+        self.model = model            # model name for backend
 
-    models: ModelConfig = field(default_factory=ModelConfig)
-    chunking: ChunkingConfig = field(default_factory=ChunkingConfig)
-    retrieval: RetrievalConfig = field(default_factory=RetrievalConfig)
+        # Existing config objects (keep your defaults)
+        self.chunking = chunking or {}
+        self.models = models or type("ModelConfig", (), {
+            "embedding_model": "all-MiniLM-L6-v2",
+        })()
+        self.retrieval = retrieval or {}

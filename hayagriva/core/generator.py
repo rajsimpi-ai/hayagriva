@@ -1,36 +1,37 @@
-"""LLM generation helpers."""
-from __future__ import annotations
+# hayagriva/core/generator.py
 
-from typing import Optional
-import importlib.util
-
-from hayagriva.exceptions import GenerationError, MissingDependencyError
-from hayagriva.utils.logger import get_logger
-
-logger = get_logger(__name__)
-
+from openai import OpenAI
+from hayagriva.exceptions import GenerationError
 
 class OpenAIGenerator:
-    """Minimal OpenAI chat completion wrapper."""
+    """
+    Generator backend using OpenAI API.
+    """
 
-    def __init__(self, model_name: str = "gpt-4o", api_key: Optional[str] = None) -> None:
-        if importlib.util.find_spec("openai") is None:
-            raise MissingDependencyError(
-                "openai>=1.0.0 is required for generation. Install with `pip install openai`."
-            )
-        from openai import OpenAI
+    def __init__(self, api_key: str, model: str = "gpt-4o-mini"):
+        if not api_key:
+            raise GenerationError("OpenAI API key is missing.")
 
         self.client = OpenAI(api_key=api_key)
-        self.model_name = model_name
+        self.model = model
 
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str):
         try:
-            response = self.client.chat.completions.create(
-                model=self.model_name,
+            stream = self.client.chat.completions.create(
+                model=self.model,
                 messages=[{"role": "user", "content": prompt}],
+                temperature=0.7,
+                stream=True,
             )
-        except Exception as exc:  # pylint: disable=broad-except
-            raise GenerationError(f"Failed to generate response: {exc}") from exc
-        content = response.choices[0].message.content if response.choices else ""
-        logger.info("Received completion with %d characters", len(content))
-        return content
+
+            # Streaming tokens
+            for chunk in stream:
+                if (
+                    chunk.choices
+                    and chunk.choices[0].delta
+                    and chunk.choices[0].delta.content
+                ):
+                    yield chunk.choices[0].delta.content
+
+        except Exception as exc:
+            raise GenerationError(f"Groq generation failed: {exc}") from exc

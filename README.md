@@ -1,80 +1,177 @@
-# Hayagriva
-Illuminate what was forgotten. Retrieve what matters.
+# Hayagriva – Modular Retrieval-Augmented Generation Framework
 
-Hayagriva is a lightweight, modular Retrieval-Augmented Generation (RAG) framework designed to help developers build production-ready AI systems that combine large language models with real-world contextual knowledge. Inspired by Hayagriva, the divine preserver and restorer of the Vedas, this library focuses on retrieving truth from stored knowledge and generating accurate, grounded responses.
+![Hayagriva](hayagriva.png)
 
-## Features
-- Pluggable retrievers (vector databases, keyword search, hybrid search)
-- Model-agnostic generation (choose any LLM backend)
-- Flexible embeddings and rerankers
-- Built-in document loaders and chunking utilities
-- Minimal and extensible architecture
-- Easy integration with existing pipelines
-- Lightweight and fast
-- Basic CLI and Gradio UI for experimentation
+सर्वविद्याप्रसूत्यर्थं हयग्रीवोऽवतारतः
+वेदान् संरक्ष्य जगतां हितकारी सदा भवेत्
 
-## Project Structure
+"To restore and protect all knowledge, Hayagriva has manifested. He safeguards the Vedas for the good of the world."
+
+Hayagriva is a lightweight, modular Retrieval-Augmented Generation (RAG) framework designed to combine large language models with efficient document retrieval. It focuses on accuracy, grounded responses, and ease of integration. The framework supports both programmatic use and a simple UI for experimentation, making it suitable for developers, researchers, and production-oriented teams.
+
+---
+
+## Key Features
+
+### Retrieval-Augmented Generation
+
+Built around a clean abstraction that connects LLMs with contextual retrieval to produce grounded answers.
+
+Supports major LLM providers including Groq and OpenAI, with planned expansion to Anthropic, Gemini, DeepSeek, and local GGUF-based models.
+
+Configurable pipelines for:
+
+* Embedding generation
+* Vector indexing with FAISS
+* Context-aware prompting
+* Streamed or batched inference
+
+### Modular and Lightweight Architecture
+
+Hayagriva is intentionally minimal. Each component can be used independently:
+
+* Document ingestion
+* Embedding and indexing
+* Query execution
+* Reranking (planned)
+* Model backends
+
+This modularity allows seamless integration into applications, agent frameworks, backend systems, or research workflows.
+
+### Flexible Document Handling
+
+Documents can be added programmatically or ingested through the CLI. Supports:
+
+* Text files
+* Markdown files
+* Directory-level ingestion
+
+Automatic chunking and metadata assignment provide efficient retrieval.
+
+### Streamlined CLI and UI
+
+Hayagriva provides both a CLI and a Gradio UI:
+
+* Launch an interactive chat and retrieval interface
+* Ingest files and build indexes
+* Perform quick queries
+* Inspect retrieval behavior
+
+---
+
+## Installation
+
+```bash
+pip install hayagriva
 ```
-hayagriva/
-├── core/           # Core RAG building blocks (chunker, embeddings, vector store, retriever, generator)
-├── ingestion/      # Loaders and parsers for documents
-├── ui/             # Gradio UI components
-├── cli/            # Command line interface
-├── utils/          # Utilities for logging, validation, etc.
-├── config.py       # Configuration dataclasses
-├── exceptions.py   # Custom exception types
-└── version.py      # Version metadata
-```
 
-## Quick Start
-### Python API
+---
+
+## Python Usage
+
+### Basic Example
+
 ```python
 from hayagriva import Hayagriva, HayagrivaConfig
 
-config = HayagrivaConfig()  # customize models or retrieval parameters if needed
+config = HayagrivaConfig(
+    backend="groq",
+    api_key="YOUR_GROQ_KEY",
+    model="llama-3.1-8b-instant",
+)
+
 rag = Hayagriva(config)
 rag.add_documents(["Hayagriva restores forgotten knowledge."])
-response = rag.ask("Who retrieved the lost Vedas?")
+
+response = "".join(rag.ask("Who retrieved the lost Vedas?"))
 print(response)
 ```
 
-### CLI
+### Streaming Example
+
+```python
+for token in rag.ask("Explain retrieval-augmented generation"):
+    print(token, end="", flush=True)
 ```
-# Launch the Gradio UI
+
+---
+
+## CLI Usage
+
+### Launch UI
+
+```bash
 hayagriva ui --port 7878
+```
 
-# Ingest local text files
+### Ingest Files
+
+```bash
 hayagriva ingest ./docs
-
-# Ask a question from the terminal
-hayagriva query "Explain retrieval-augmented generation"
 ```
 
-### Gradio UI
-Running `hayagriva ui` starts a simple two-panel UI: left for ingestion, right for chat-based Q&A. It is a placeholder designed for future expansion.
+### Query
 
-## Minimum Requirements
-- Python 3.10+
-- Dependencies: `sentence-transformers`, `faiss-cpu`, `openai>=1.0.0`, `gradio`
-
-Set `OPENAI_API_KEY` in your environment or configure it programmatically when instantiating `Hayagriva`.
-
-### Installation
-Install the package and dependencies in a Python 3.10+ environment:
-
-```
-pip install -e .
+```bash
+hayagriva query "What is RAG?"
 ```
 
-Ensure you have system build tools available for `faiss-cpu` (the default vector store) and that `OPENAI_API_KEY` is set before running generation.
+---
+
+## Gradio UI
+
+Running `hayagriva ui` opens a browser-based interface for uploading documents, inspecting retrieved context, and asking questions interactively.
+
+---
+
+## Requirements
+
+* Python 3.10+
+* sentence-transformers
+* faiss-cpu
+* API key for Groq or OpenAI
+
+---
 
 ## Roadmap
-- Built-in document ingestion for PDFs, DOCX, JSON
-- Streaming responses and multi-turn chat memory
-- Additional vector stores (Chroma, Qdrant, Pinecone, Milvus)
-- Hybrid retrieval and reranking
-- Rich UI controls and analytics
-- Agentic tool-use within the pipeline
 
-## License
-MIT License
+### Expanded LLM Provider Support
+
+* Anthropic Claude
+* Google Gemini
+* DeepSeek
+* Local GGUF models and llama.cpp
+
+### External Vector Database Integration
+
+* Pinecone
+* Weaviate
+* Additional pluggable backends
+
+### Memory-Augmented Chat
+
+* Multi-turn memory
+* Embedding-based long-term memory
+* Summarization-based memory compression
+
+---
+
+## Use Cases
+
+* Building retrieval-augmented assistants
+* Knowledge-base and enterprise search
+* Research and benchmarking of RAG pipelines
+* Lightweight production deployments
+* Internal document Q&A systems
+
+---
+
+## Contributing
+
+Contributions to model integrations, retrieval modules, UI features, and documentation are welcome. Submit issues or pull requests.
+
+---
+
+## Support
+
+For questions, bugs, or feature requests, open an issue on the project repository.

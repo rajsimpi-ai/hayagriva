@@ -1,7 +1,7 @@
-"""Hayagriva orchestrator class."""
-from __future__ import annotations
+# hayagriva/core/hayagriva.py
 
-from typing import Iterable, List, Optional, Tuple
+from __future__ import annotations
+from typing import Iterable, List, Optional
 
 from hayagriva.config import HayagrivaConfig
 from hayagriva.core.chunker import WordChunker
@@ -22,32 +22,64 @@ class Hayagriva:
 
     def __init__(self, config: Optional[HayagrivaConfig] = None) -> None:
         self.config = config or HayagrivaConfig()
+
+        # Core components
         self.chunker = WordChunker(self.config.chunking)
-        self.embedder = SentenceTransformerEmbeddings(self.config.models.embedding_model)
-        self.vector_store = FaissVectorStore()
-        self.retriever = Retriever(self.embedder, self.vector_store, self.config.retrieval)
-        self.generator = OpenAIGenerator(
-            model_name=self.config.models.llm_model,
-            api_key=self.config.models.openai_api_key,
+        self.embedder = SentenceTransformerEmbeddings(
+            self.config.models.embedding_model
         )
+        self.vector_store = FaissVectorStore()
+        self.retriever = Retriever(
+            self.embedder, self.vector_store, self.config.retrieval
+        )
+
+        # Backend selection
+        if self.config.backend == "openai":
+            from .generator import OpenAIGenerator
+            self.generator = OpenAIGenerator(
+                api_key=self.config.api_key,
+                model=self.config.model,
+            )
+
+        elif self.config.backend == "groq":
+            from .groq_generator import GroqGenerator
+            self.generator = GroqGenerator(
+                api_key=self.config.api_key,
+                model=self.config.model,
+            )
+
+        else:
+            raise ValueError(f"Unknown backend: {self.config.backend}")
+
         self._documents: List[str] = []
 
     def add_documents(self, documents: Iterable[str]) -> None:
         texts = ensure_texts(documents)
         self._documents.extend(texts)
+
         chunks = self.chunker.chunk(texts)
         logger.info("Chunked %d documents into %d chunks", len(texts), len(chunks))
+
         self.retriever.add(chunks)
 
     def ask(self, question: str) -> str:
-        """Answer a question using retrieval and generation."""
+        """Answer a question using retrieval + generation."""
 
         results = self.retriever.retrieve(question)
         contexts = [chunk for chunk, _ in results]
+
         context_block = build_context(contexts)
         prompt = build_prompt(question, contexts)
+
         logger.info("Built prompt with context length %d", len(context_block))
-        return self.generator.generate(prompt)
+
+        result = self.generator.generate(prompt)
+
+        if hasattr(result, "__iter__") and not isinstance(result, str):
+            for token in result:
+                yield token
+        else:
+            yield result
 
     def get_index_size(self) -> int:
         return len(self.vector_store.chunks)

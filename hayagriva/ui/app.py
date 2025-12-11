@@ -22,12 +22,13 @@ def launch_ui(rag: Optional[Hayagriva] = None, port: int = 7878, share: bool = F
 
     rag = rag or Hayagriva()
 
-    def on_upload(text: str) -> str:
+    def on_upload(text, *args):
         rag.add_documents([text])
         return f"Ingested text. Index size: {rag.get_index_size()}"
 
-    def on_submit(message: str) -> str:
-        return rag.ask(message)
+    def on_submit(message, history=None):
+        for token in rag.ask(message):
+            yield token
 
     with gr.Blocks() as demo:
         gr.Markdown("# Hayagriva RAG\nIngest text and ask questions.")
@@ -36,7 +37,7 @@ def launch_ui(rag: Optional[Hayagriva] = None, port: int = 7878, share: bool = F
                 uploader(on_upload)
                 settings_panel()
             with gr.Column():
-                chat_box(on_submit)
+                chatbot, msg = chat_box(on_submit)
 
     logger.info("Launching Gradio UI on port %d", port)
     demo.launch(server_name="0.0.0.0", server_port=port, share=share)
