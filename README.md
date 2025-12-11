@@ -29,9 +29,10 @@ hayagriva/
 ## Quick Start
 ### Python API
 ```python
-from hayagriva import Hayagriva
+from hayagriva import Hayagriva, HayagrivaConfig
 
-rag = Hayagriva()
+config = HayagrivaConfig()  # customize models or retrieval parameters if needed
+rag = Hayagriva(config)
 rag.add_documents(["Hayagriva restores forgotten knowledge."])
 response = rag.ask("Who retrieved the lost Vedas?")
 print(response)
@@ -57,6 +58,15 @@ Running `hayagriva ui` starts a simple two-panel UI: left for ingestion, right f
 - Dependencies: `sentence-transformers`, `faiss-cpu`, `openai>=1.0.0`, `gradio`
 
 Set `OPENAI_API_KEY` in your environment or configure it programmatically when instantiating `Hayagriva`.
+
+### Installation
+Install the package and dependencies in a Python 3.10+ environment:
+
+```
+pip install -e .
+```
+
+Ensure you have system build tools available for `faiss-cpu` (the default vector store) and that `OPENAI_API_KEY` is set before running generation.
 
 ## Roadmap
 - Built-in document ingestion for PDFs, DOCX, JSON
