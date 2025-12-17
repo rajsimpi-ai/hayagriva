@@ -7,7 +7,7 @@
 
 "To restore and protect all knowledge, Hayagriva has manifested. He safeguards the Vedas for the good of the world."
 
-Hayagriva is a lightweight, modular Retrieval-Augmented Generation (RAG) framework designed to combine large language models with efficient document retrieval. It focuses on accuracy, grounded responses, and ease of integration. The framework supports both programmatic use and a simple UI for experimentation, making it suitable for developers, researchers, and production-oriented teams.
+Hayagriva is a lightweight, modular Retrieval-Augmented Generation (RAG) framework designed to combine large language models with efficient document retrieval. It focuses on accuracy, grounded responses, and ease of integration. The framework supports programmatic use, making it suitable for developers, researchers, and production-oriented teams.
 
 ---
 
@@ -48,14 +48,12 @@ Documents can be added programmatically or ingested through the CLI. Supports:
 
 Automatic chunking and metadata assignment provide efficient retrieval.
 
-### Streamlined CLI and UI
+### Streamlined CLI
 
-Hayagriva provides both a CLI and a Gradio UI:
+Hayagriva provides a CLI to:
 
-* Launch an interactive chat and retrieval interface
 * Ingest files and build indexes
 * Perform quick queries
-* Inspect retrieval behavior
 
 ---
 
@@ -98,12 +96,6 @@ for token in rag.ask("Explain retrieval-augmented generation"):
 
 ## CLI Usage
 
-### Launch UI
-
-```bash
-hayagriva ui --port 7878
-```
-
 ### Ingest Files
 
 ```bash
@@ -115,12 +107,6 @@ hayagriva ingest ./docs
 ```bash
 hayagriva query "What is RAG?"
 ```
-
----
-
-## Gradio UI
-
-Running `hayagriva ui` opens a browser-based interface for uploading documents, inspecting retrieved context, and asking questions interactively.
 
 ---
 
@@ -168,7 +154,7 @@ Running `hayagriva ui` opens a browser-based interface for uploading documents, 
 
 ## Contributing
 
-Contributions to model integrations, retrieval modules, UI features, and documentation are welcome. Submit issues or pull requests.
+Contributions to model integrations, retrieval modules, and documentation are welcome. Submit issues or pull requests.
 
 ---
 

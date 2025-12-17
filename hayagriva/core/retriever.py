@@ -34,7 +34,15 @@ class Retriever:
     def retrieve(self, query: str) -> List[Tuple[str, float]]:
         top_k = validate_top_k(self.config.top_k)
         query_embedding = self.embedder.embed_query(query)
-        results = self.vector_store.search(query_embedding, top_k=top_k)
+        
+        results = self.vector_store.search(
+            query_embedding, 
+            top_k=top_k, 
+            query_text=query,
+            strategy=self.config.strategy,
+            alpha=self.config.alpha
+        )
+        
         if self.config.similarity_threshold > 0:
             results = [r for r in results if r[1] >= self.config.similarity_threshold]
         logger.info("Retrieved %d chunks", len(results))

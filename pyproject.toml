@@ -13,7 +13,7 @@ dependencies = [
     "faiss-cpu",
     "openai>=1.0.0",
     "groq",
-    "gradio>=4.0",
+    "weaviate-client",
 ]
 
 [project.urls]

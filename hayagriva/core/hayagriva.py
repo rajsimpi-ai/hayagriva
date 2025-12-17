@@ -11,6 +11,7 @@ from hayagriva.core.generator import OpenAIGenerator
 from hayagriva.core.pipeline import build_prompt
 from hayagriva.core.retriever import Retriever
 from hayagriva.core.vectorstore import FaissVectorStore
+from hayagriva.core.weaviate_store import WeaviateVectorStore
 from hayagriva.utils.logger import get_logger
 from hayagriva.utils.validator import ensure_texts
 
@@ -28,7 +29,12 @@ class Hayagriva:
         self.embedder = SentenceTransformerEmbeddings(
             self.config.models.embedding_model
         )
-        self.vector_store = FaissVectorStore()
+        
+        if self.config.vector_store == "weaviate":
+            self.vector_store = WeaviateVectorStore(self.config.weaviate)
+        else:
+            self.vector_store = FaissVectorStore()
+            
         self.retriever = Retriever(
             self.embedder, self.vector_store, self.config.retrieval
         )
@@ -82,7 +88,9 @@ class Hayagriva:
             yield result
 
     def get_index_size(self) -> int:
-        return len(self.vector_store.chunks)
+        if hasattr(self.vector_store, "chunks"):
+            return len(self.vector_store.chunks)
+        return 0
 
     @property
     def documents(self) -> List[str]:

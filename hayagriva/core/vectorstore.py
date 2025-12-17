@@ -39,7 +39,7 @@ class FaissVectorStore:
         self.vectors.extend(normalized)
         self.chunks.extend(list(chunks))
 
-    def search(self, query_embedding, top_k: int = 4) -> List[Tuple[str, float]]:
+    def search(self, query_embedding, top_k: int = 4, query_text: str = "", **kwargs) -> List[Tuple[str, float]]:
         if self.index is None or len(self.chunks) == 0:
             return []
         normalized = self._normalize(query_embedding.reshape(1, -1))
