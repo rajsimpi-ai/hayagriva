@@ -19,24 +19,29 @@ Built around a clean abstraction that connects LLMs with contextual retrieval to
 
 Supports major LLM providers including Groq and OpenAI, with planned expansion to Anthropic, Gemini, DeepSeek, and local GGUF-based models.
 
-Configurable pipelines for:
+### Advanced Retrieval Strategies
 
-* Embedding generation
-* Vector indexing with FAISS
-* Context-aware prompting
-* Streamed or batched inference
+Hayagriva supports multiple retrieval strategies to ensure the most relevant context is found:
 
-### Modular and Lightweight Architecture
+* **Vector Search**: Dense retrieval using semantic embeddings.
+* **BM25**: Sparse retrieval using keyword matching.
+* **Hybrid Search**: Combines vector and keyword search with configurable weighting (alpha).
 
-Hayagriva is intentionally minimal. Each component can be used independently:
+### Advanced Chunking Strategies
 
-* Document ingestion
-* Embedding and indexing
-* Query execution
-* Reranking (planned)
-* Model backends
+Hayagriva supports multiple chunking strategies to optimize retrieval:
 
-This modularity allows seamless integration into applications, agent frameworks, backend systems, or research workflows.
+* **Word (Default)**: Simple sliding window based on word count.
+* **Recursive**: Splits text by separators (e.g., paragraphs, newlines) to preserve semantic structure.
+* **Semantic**: Uses embeddings to split text based on topic shifts (requires an embedding model).
+* **Hierarchical**: Creates parent chunks for context and child chunks for precise retrieval.
+
+### Modular Vector Stores
+
+Choose the vector store that fits your needs:
+
+* **FAISS**: Lightweight, in-memory vector store for quick prototyping and small datasets.
+* **Weaviate**: Production-grade vector database support for scalability and persistence.
 
 ### Flexible Document Handling
 
@@ -48,26 +53,33 @@ Documents can be added programmatically or ingested through the CLI. Supports:
 
 Automatic chunking and metadata assignment provide efficient retrieval.
 
-### Streamlined CLI
-
-Hayagriva provides a CLI to:
-
-* Ingest files and build indexes
-* Perform quick queries
-
 ---
 
 ## Installation
 
+### Default (Lightweight)
+Installs core libraries only. Suitable if you bring your own embeddings or vector store.
 ```bash
 pip install hayagriva
+```
+
+### CPU Support (Recommended for Local Testing)
+Installs `sentence-transformers` and `faiss-cpu`.
+```bash
+pip install "hayagriva[cpu]"
+```
+
+### GPU Support
+Installs `sentence-transformers` and `faiss-gpu`.
+```bash
+pip install "hayagriva[cuda]"
 ```
 
 ---
 
 ## Python Usage
 
-### Basic Example
+### Basic Example (FAISS + Vector Search)
 
 ```python
 from hayagriva import Hayagriva, HayagrivaConfig
@@ -85,10 +97,40 @@ response = "".join(rag.ask("Who retrieved the lost Vedas?"))
 print(response)
 ```
 
-### Streaming Example
+### Advanced Example (Weaviate + Hybrid Search)
 
 ```python
-for token in rag.ask("Explain retrieval-augmented generation"):
+from hayagriva import Hayagriva, HayagrivaConfig
+from hayagriva.config import WeaviateConfig
+
+# Configure Weaviate
+weaviate_config = WeaviateConfig(
+    url="http://localhost:8080",
+    index_name="HayagrivaDocs"
+)
+
+# Configure Hayagriva with Weaviate and Hybrid Search
+config = HayagrivaConfig(
+    backend="groq",
+    api_key="YOUR_GROQ_KEY",
+    vector_store="weaviate",
+    weaviate=weaviate_config,
+    retrieval=type("RetrievalConfig", (), {
+        "strategy": "hybrid",  # "vector", "bm25", or "hybrid"
+        "alpha": 0.5,          # 0.5 = equal weight
+        "top_k": 4
+    })(),
+    chunking=type("ChunkingConfig", (), {
+        "strategy": "recursive",  # "word", "recursive", "semantic", "hierarchical"
+        "chunk_size": 500,
+        "overlap": 50
+    })()
+)
+
+rag = Hayagriva(config)
+rag.add_documents(["Hayagriva is an avatar of Vishnu."])
+
+for token in rag.ask("Who is Hayagriva?"):
     print(token, end="", flush=True)
 ```
 
@@ -115,6 +157,7 @@ hayagriva query "What is RAG?"
 * Python 3.10+
 * sentence-transformers
 * faiss-cpu
+* weaviate-client
 * API key for Groq or OpenAI
 
 ---
@@ -128,10 +171,10 @@ hayagriva query "What is RAG?"
 * DeepSeek
 * Local GGUF models and llama.cpp
 
-### External Vector Database Integration
+### Additional Vector Database Integration
 
 * Pinecone
-* Weaviate
+* ChromaDB
 * Additional pluggable backends
 
 ### Memory-Augmented Chat

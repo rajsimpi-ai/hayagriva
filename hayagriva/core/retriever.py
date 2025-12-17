@@ -25,10 +25,13 @@ class Retriever:
         self.vector_store = vector_store
         self.config = config or RetrievalConfig()
 
-    def add(self, chunks: Iterable[str]) -> None:
+    def add(self, chunks: Iterable[str], metadata: Iterable[dict] | None = None) -> None:
         chunk_list = list(chunks)
         embeddings = self.embedder.embed(chunk_list)
-        self.vector_store.add(embeddings, chunk_list)
+        
+        meta_list = list(metadata) if metadata else None
+        self.vector_store.add(embeddings, chunk_list, metadata=meta_list)
+        
         logger.info("Added %d chunks to vector store", len(chunk_list))
 
     def retrieve(self, query: str) -> List[Tuple[str, float]]:

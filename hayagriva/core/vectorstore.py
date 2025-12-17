@@ -24,8 +24,9 @@ class FaissVectorStore:
         self.index: faiss.IndexFlatIP | None = None
         self.vectors: List[np.ndarray] = []
         self.chunks: List[str] = []
+        self.metadata: List[dict] = []
 
-    def add(self, embeddings, chunks: Sequence[str]) -> None:
+    def add(self, embeddings, chunks: Sequence[str], metadata: Sequence[dict] | None = None) -> None:
         if len(embeddings) != len(chunks):
             raise ValueError("Embeddings and chunks length mismatch")
         if embeddings.size == 0:
@@ -38,6 +39,13 @@ class FaissVectorStore:
         self.index.add(normalized)
         self.vectors.extend(normalized)
         self.chunks.extend(list(chunks))
+        
+        if metadata is None:
+            self.metadata.extend([{} for _ in chunks])
+        else:
+            if len(metadata) != len(chunks):
+                raise ValueError("Metadata length mismatch")
+            self.metadata.extend(list(metadata))
 
     def search(self, query_embedding, top_k: int = 4, query_text: str = "", **kwargs) -> List[Tuple[str, float]]:
         if self.index is None or len(self.chunks) == 0:

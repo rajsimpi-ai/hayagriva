@@ -7,13 +7,20 @@ readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
 
-dependencies = [
     "numpy",
-    "sentence-transformers",
-    "faiss-cpu",
     "openai>=1.0.0",
     "groq",
     "weaviate-client",
+]
+
+[project.optional-dependencies]
+cpu = [
+    "sentence-transformers",
+    "faiss-cpu",
+]
+cuda = [
+    "sentence-transformers",
+    "faiss-gpu",
 ]
 
 [project.urls]

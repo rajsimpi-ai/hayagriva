@@ -4,7 +4,12 @@ from __future__ import annotations
 from typing import Iterable, List, Optional
 
 from hayagriva.config import HayagrivaConfig
-from hayagriva.core.chunker import WordChunker
+from hayagriva.core.chunker import (
+    WordChunker,
+    RecursiveChunker,
+    SemanticChunker,
+    HierarchicalChunker
+)
 from hayagriva.core.context_builder import build_context
 from hayagriva.core.embeddings import SentenceTransformerEmbeddings
 from hayagriva.core.generator import OpenAIGenerator
@@ -25,10 +30,20 @@ class Hayagriva:
         self.config = config or HayagrivaConfig()
 
         # Core components
-        self.chunker = WordChunker(self.config.chunking)
         self.embedder = SentenceTransformerEmbeddings(
             self.config.models.embedding_model
         )
+
+        # Initialize Chunker based on strategy
+        strategy = self.config.chunking.strategy
+        if strategy == "recursive":
+            self.chunker = RecursiveChunker(self.config.chunking)
+        elif strategy == "semantic":
+            self.chunker = SemanticChunker(self.config.chunking, embedder=self.embedder)
+        elif strategy == "hierarchical":
+            self.chunker = HierarchicalChunker(self.config.chunking)
+        else:
+            self.chunker = WordChunker(self.config.chunking)
         
         if self.config.vector_store == "weaviate":
             self.vector_store = WeaviateVectorStore(self.config.weaviate)
@@ -63,10 +78,10 @@ class Hayagriva:
         texts = ensure_texts(documents)
         self._documents.extend(texts)
 
-        chunks = self.chunker.chunk(texts)
+        chunks, metadata = self.chunker.chunk(texts)
         logger.info("Chunked %d documents into %d chunks", len(texts), len(chunks))
 
-        self.retriever.add(chunks)
+        self.retriever.add(chunks, metadata)
 
     def ask(self, question: str) -> str:
         """Answer a question using retrieval + generation."""

@@ -19,6 +19,10 @@ class ChunkingConfig:
 
     chunk_size: int = 200
     overlap: int = 20
+    strategy: str = "word"  # "word", "recursive", "semantic", "hierarchical"
+    separators: list = field(default_factory=lambda: ["\n\n", "\n", " ", ""])
+    semantic_threshold: float = 0.8
+    parent_chunk_size: int = 1000
 
 
 @dataclass

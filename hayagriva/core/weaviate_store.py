@@ -40,6 +40,10 @@ class WeaviateVectorStore:
                     "name": "text",
                     "dataType": ["text"],
                 },
+                {
+                    "name": "parent_text",
+                    "dataType": ["text"],
+                },
             ],
         }
 
@@ -47,7 +51,7 @@ class WeaviateVectorStore:
             self.client.schema.create_class(class_obj)
             logger.info(f"Created Weaviate class: {self.config.index_name}")
 
-    def add(self, embeddings, chunks: Sequence[str]) -> None:
+    def add(self, embeddings, chunks: Sequence[str], metadata: Sequence[dict] | None = None) -> None:
         """Add embeddings and chunks to Weaviate."""
         if len(embeddings) != len(chunks):
             raise ValueError("Embeddings and chunks length mismatch")
@@ -63,6 +67,11 @@ class WeaviateVectorStore:
                 properties = {
                     "text": text,
                 }
+                
+                if metadata and i < len(metadata):
+                    meta = metadata[i]
+                    if "parent_text" in meta:
+                        properties["parent_text"] = meta["parent_text"]
                 
                 batch.add_data_object(
                     data_object=properties,
