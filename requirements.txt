@@ -2,6 +2,5 @@ numpy
 sentence-transformers
 faiss-cpu
 openai>=1.0.0
-
 groq
 weaviate-client

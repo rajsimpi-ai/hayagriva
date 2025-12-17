@@ -1,7 +1,7 @@
 [project]
 name = "hayagriva"
-version = "0.1.0"
-description = "Modular Retrieval-Augmented Generation (RAG) framework."
+version = "0.2.0"
+description = "Modular RAG framework with support for FAISS, Weaviate, and Hybrid Search."
 authors = [{ name = "Hayagriva Team" }]
 readme = "README.md"
 license = { text = "MIT" }
