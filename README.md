@@ -42,6 +42,7 @@ Choose the vector store that fits your needs:
 
 * **FAISS**: Lightweight, in-memory vector store for quick prototyping and small datasets.
 * **Weaviate**: Production-grade vector database support for scalability and persistence.
+* **Pinecone**: Managed vector database for high-performance, serverless vector search.
 
 ### Flexible Document Handling
 
@@ -95,6 +96,18 @@ rag.add_documents(["Hayagriva restores forgotten knowledge."])
 
 response = "".join(rag.ask("Who retrieved the lost Vedas?"))
 print(response)
+```
+
+### Customizing Embeddings
+
+You can use any model supported by `sentence-transformers` (HuggingFace) by setting `embedding_model`:
+
+```python
+config = HayagrivaConfig(
+    backend="groq",
+    api_key="YOUR_KEY",
+    embedding_model="intfloat/multilingual-e5-large" # Custom model
+)
 ```
 
 ### Advanced Example (Weaviate + Hybrid Search)
@@ -158,6 +171,7 @@ hayagriva query "What is RAG?"
 * sentence-transformers
 * faiss-cpu
 * weaviate-client
+* pinecone-client
 * API key for Groq or OpenAI
 
 ---
@@ -173,7 +187,6 @@ hayagriva query "What is RAG?"
 
 ### Additional Vector Database Integration
 
-* Pinecone
 * ChromaDB
 * Additional pluggable backends
 

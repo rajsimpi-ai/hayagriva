@@ -11,3 +11,5 @@ build/
 docker-compose.yml
 test.py
 test_weaviate.py
+test_pinecone.py
+test_embedding.py

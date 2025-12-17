@@ -16,6 +16,7 @@ from hayagriva.core.generator import OpenAIGenerator
 from hayagriva.core.pipeline import build_prompt
 from hayagriva.core.retriever import Retriever
 from hayagriva.core.vectorstore import FaissVectorStore
+from hayagriva.core.pinecone_store import PineconeVectorStore
 from hayagriva.core.weaviate_store import WeaviateVectorStore
 from hayagriva.utils.logger import get_logger
 from hayagriva.utils.validator import ensure_texts
@@ -47,6 +48,8 @@ class Hayagriva:
         
         if self.config.vector_store == "weaviate":
             self.vector_store = WeaviateVectorStore(self.config.weaviate)
+        elif self.config.vector_store == "pinecone":
+            self.vector_store = PineconeVectorStore(self.config.pinecone)
         else:
             self.vector_store = FaissVectorStore()
             

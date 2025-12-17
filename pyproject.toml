@@ -1,6 +1,6 @@
 [project]
 name = "hayagriva"
-version = "0.2.2"
+version = "0.2.3"
 description = "Modular RAG framework with support for FAISS, Weaviate, and Hybrid Search."
 authors = [{ name = "Hayagriva Team" }]
 readme = "README.md"
@@ -12,6 +12,7 @@ dependencies = [
     "openai>=1.0.0",
     "groq",
     "weaviate-client",
+    "pinecone-client",
 ]
 
 [project.optional-dependencies]
