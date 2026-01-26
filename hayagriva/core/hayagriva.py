@@ -86,8 +86,13 @@ class Hayagriva:
 
         self.retriever.add(chunks, metadata)
 
-    def ask(self, question: str) -> str:
-        """Answer a question using retrieval + generation."""
+    def ask(self, question: str, return_metadata: bool = False):
+        """Answer a question using retrieval + generation.
+
+        When return_metadata=True, returns a structured dict containing the
+        final answer plus retrieval/chunking details. Otherwise, returns a
+        streaming generator or a single string.
+        """
 
         results = self.retriever.retrieve(question)
         contexts = [chunk for chunk, _ in results]
@@ -99,11 +104,41 @@ class Hayagriva:
 
         result = self.generator.generate(prompt)
 
-        if hasattr(result, "__iter__") and not isinstance(result, str):
-            for token in result:
-                yield token
-        else:
-            yield result
+        if return_metadata:
+            if hasattr(result, "__iter__") and not isinstance(result, str):
+                answer = "".join(list(result))
+            else:
+                answer = result
+
+            chunks = [
+                {"rank": idx + 1, "text": chunk, "score": score}
+                for idx, (chunk, score) in enumerate(results)
+            ]
+
+            return {
+                "answer": answer,
+                "question": question,
+                "chunks": chunks,
+                "retrieval": {
+                    "strategy": self.config.retrieval.strategy,
+                    "top_k": self.config.retrieval.top_k,
+                    "similarity_threshold": self.config.retrieval.similarity_threshold,
+                    "alpha": self.config.retrieval.alpha,
+                },
+                "chunking": {
+                    "strategy": self.config.chunking.strategy,
+                    "chunk_size": self.config.chunking.chunk_size,
+                    "overlap": self.config.chunking.overlap,
+                },
+                "model": {
+                    "backend": self.config.backend,
+                    "model": self.config.model,
+                    "embedding_model": self.config.models.embedding_model,
+                    "vector_store": self.config.vector_store,
+                },
+            }
+
+        return result
 
     def get_index_size(self) -> int:
         if hasattr(self.vector_store, "chunks"):

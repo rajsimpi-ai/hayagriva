@@ -7,71 +7,63 @@
 
 "To restore and protect all knowledge, Hayagriva has manifested. He safeguards the Vedas for the good of the world."
 
-Hayagriva is a lightweight, modular Retrieval-Augmented Generation (RAG) framework designed to combine large language models with efficient document retrieval. It focuses on accuracy, grounded responses, and ease of integration. The framework supports programmatic use, making it suitable for developers, researchers, and production-oriented teams.
+Hayagriva is a lightweight, modular Retrieval-Augmented Generation (RAG) framework that connects LLMs with efficient document retrieval. It focuses on grounded answers, fast iteration, and easy integration for developers and research teams.
 
 ---
 
 ## Key Features
 
 ### Retrieval-Augmented Generation
+Combine contextual retrieval with LLMs to produce grounded, source-aware answers.
 
-Built around a clean abstraction that connects LLMs with contextual retrieval to produce grounded answers.
+Supported LLM backends today: **Groq** and **OpenAI**.
 
-Supports major LLM providers including Groq and OpenAI, with planned expansion to Anthropic, Gemini, DeepSeek, and local GGUF-based models.
+### Retrieval Strategies
+Hayagriva supports multiple retrieval strategies (depending on vector store):
 
-### Advanced Retrieval Strategies
+* **Vector Search**: Dense semantic retrieval.
+* **BM25**: Sparse keyword retrieval (Weaviate).
+* **Hybrid Search**: Vector + keyword with configurable weighting (Weaviate).
 
-Hayagriva supports multiple retrieval strategies to ensure the most relevant context is found:
+### Chunking Strategies
 
-* **Vector Search**: Dense retrieval using semantic embeddings.
-* **BM25**: Sparse retrieval using keyword matching.
-* **Hybrid Search**: Combines vector and keyword search with configurable weighting (alpha).
-
-### Advanced Chunking Strategies
-
-Hayagriva supports multiple chunking strategies to optimize retrieval:
-
-* **Word (Default)**: Simple sliding window based on word count.
-* **Recursive**: Splits text by separators (e.g., paragraphs, newlines) to preserve semantic structure.
-* **Semantic**: Uses embeddings to split text based on topic shifts (requires an embedding model).
-* **Hierarchical**: Creates parent chunks for context and child chunks for precise retrieval.
+* **Word (Default)**: Sliding window on word count.
+* **Recursive**: Split by separators to preserve structure.
+* **Semantic**: Embedding-aware topic shifts.
+* **Hierarchical**: Parent/child chunking for broad + precise context.
 
 ### Modular Vector Stores
 
-Choose the vector store that fits your needs:
-
-* **FAISS**: Lightweight, in-memory vector store for quick prototyping and small datasets.
-* **Weaviate**: Production-grade vector database support for scalability and persistence.
-* **Pinecone**: Managed vector database for high-performance, serverless vector search.
+* **FAISS**: Lightweight, in-memory vector store.
+* **Weaviate**: Production-grade vector DB with hybrid/BM25.
+* **Pinecone**: Managed vector DB (vector-only search in current implementation).
 
 ### Flexible Document Handling
 
-Documents can be added programmatically or ingested through the CLI. Supports:
+* Programmatic document ingestion.
+* CLI ingestion of files and directories.
+  * **Directory ingestion reads `.txt` files by default**.
 
-* Text files
-* Markdown files
-* Directory-level ingestion
-
-Automatic chunking and metadata assignment provide efficient retrieval.
+Automatic chunking and metadata assignment are built in.
 
 ---
 
 ## Installation
 
 ### Default (Lightweight)
-Installs core libraries only. Suitable if you bring your own embeddings or vector store.
+Core libraries only:
 ```bash
 pip install hayagriva
 ```
 
 ### CPU Support (Recommended for Local Testing)
-Installs `sentence-transformers` and `faiss-cpu`.
+Installs `sentence-transformers` and `faiss-cpu`:
 ```bash
 pip install "hayagriva[cpu]"
 ```
 
 ### GPU Support
-Installs `sentence-transformers` and `faiss-gpu`.
+Installs `sentence-transformers` and `faiss-gpu`:
 ```bash
 pip install "hayagriva[cuda]"
 ```
@@ -98,15 +90,24 @@ response = "".join(rag.ask("Who retrieved the lost Vedas?"))
 print(response)
 ```
 
-### Customizing Embeddings
+### Structured Response (Answer + Metadata)
 
-You can use any model supported by `sentence-transformers` (HuggingFace) by setting `embedding_model`:
+```python
+resp = rag.ask("Who retrieved the lost Vedas?", return_metadata=True)
+print(resp["answer"])
+print(resp["chunks"][0])
+print(resp["retrieval"]["strategy"])
+```
+
+Returned metadata includes: retrieved chunk ranks/scores, chunking strategy, retrieval strategy, model backend, and vector store.
+
+### Customizing Embeddings
 
 ```python
 config = HayagrivaConfig(
     backend="groq",
     api_key="YOUR_KEY",
-    embedding_model="intfloat/multilingual-e5-large" # Custom model
+    embedding_model="intfloat/multilingual-e5-large",
 )
 ```
 
@@ -114,30 +115,20 @@ config = HayagrivaConfig(
 
 ```python
 from hayagriva import Hayagriva, HayagrivaConfig
-from hayagriva.config import WeaviateConfig
+from hayagriva.config import WeaviateConfig, RetrievalConfig, ChunkingConfig
 
-# Configure Weaviate
 weaviate_config = WeaviateConfig(
     url="http://localhost:8080",
-    index_name="HayagrivaDocs"
+    index_name="HayagrivaDocs",
 )
 
-# Configure Hayagriva with Weaviate and Hybrid Search
 config = HayagrivaConfig(
     backend="groq",
     api_key="YOUR_GROQ_KEY",
     vector_store="weaviate",
     weaviate=weaviate_config,
-    retrieval=type("RetrievalConfig", (), {
-        "strategy": "hybrid",  # "vector", "bm25", or "hybrid"
-        "alpha": 0.5,          # 0.5 = equal weight
-        "top_k": 4
-    })(),
-    chunking=type("ChunkingConfig", (), {
-        "strategy": "recursive",  # "word", "recursive", "semantic", "hierarchical"
-        "chunk_size": 500,
-        "overlap": 50
-    })()
+    retrieval=RetrievalConfig(strategy="hybrid", alpha=0.5, top_k=4),
+    chunking=ChunkingConfig(strategy="recursive", chunk_size=500, overlap=50),
 )
 
 rag = Hayagriva(config)
@@ -168,11 +159,17 @@ hayagriva query "What is RAG?"
 ## Requirements
 
 * Python 3.10+
+* API key for Groq or OpenAI
+
+Optional (only if you use local embeddings or FAISS):
+
 * sentence-transformers
-* faiss-cpu
+* faiss-cpu or faiss-gpu
+
+If using external vector databases:
+
 * weaviate-client
 * pinecone-client
-* API key for Groq or OpenAI
 
 ---
 
@@ -200,7 +197,7 @@ hayagriva query "What is RAG?"
 
 ## Use Cases
 
-* Building retrieval-augmented assistants
+* Retrieval-augmented assistants
 * Knowledge-base and enterprise search
 * Research and benchmarking of RAG pipelines
 * Lightweight production deployments
