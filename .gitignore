@@ -14,3 +14,4 @@ test_weaviate.py
 test_embedding.py
 test-*.py
 .code-workspace
+publish.sh
