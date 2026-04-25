@@ -16,7 +16,7 @@ Hayagriva is a lightweight, modular Retrieval-Augmented Generation (RAG) framewo
 ### Retrieval-Augmented Generation
 Combine contextual retrieval with LLMs to produce grounded, source-aware answers.
 
-Supported LLM backends today: **Groq** and **OpenAI**.
+Supported LLM backend today: **Groq**.
 
 ### Retrieval Strategies
 Hayagriva supports multiple retrieval strategies (depending on vector store):
@@ -36,12 +36,11 @@ Hayagriva supports multiple retrieval strategies (depending on vector store):
 
 * **FAISS**: Lightweight, in-memory vector store.
 * **Weaviate**: Production-grade vector DB with hybrid/BM25.
-* **Pinecone**: Managed vector DB (vector-only search in current implementation).
 
 ### Flexible Document Handling
 
 * Programmatic document ingestion.
-* CLI ingestion of files and directories.
+* File and directory ingestion helpers.
   * **Directory ingestion reads `.txt` files by default**.
 
 Automatic chunking and metadata assignment are built in.
@@ -72,6 +71,35 @@ pip install "hayagriva[cuda]"
 
 ## Python Usage
 
+Example setup scripts are available in `setup/`, and capability-focused examples
+are grouped under `examples/`.
+
+### Example Categories
+
+The examples are split by what part of the RAG pipeline you want to try:
+
+* `examples/ingestion/`: load text or `.txt` files without embeddings or LLM calls.
+* `examples/chunking/`: run word, recursive, semantic, or hierarchical chunking.
+* `examples/indexing/`: embed chunks and write them to FAISS or Weaviate.
+* `examples/retrieval/`: retrieve chunks without calling Groq.
+* `examples/end_to_end/`: complete Groq-powered RAG flows.
+* `examples/vectorstores/weaviate/`: Weaviate vector, BM25, and hybrid examples.
+
+For local FAISS and embedding examples:
+
+```bash
+bash setup/install_local_deps.sh
+export GROQ_API_KEY="YOUR_GROQ_KEY"
+```
+
+For Weaviate examples:
+
+```bash
+bash setup/install_local_deps.sh
+bash setup/start_weaviate.sh
+export GROQ_API_KEY="YOUR_GROQ_KEY"
+```
+
 ### Basic Example (FAISS + Vector Search)
 
 ```python
@@ -88,6 +116,21 @@ rag.add_documents(["Hayagriva restores forgotten knowledge."])
 
 response = "".join(rag.ask("Who retrieved the lost Vedas?"))
 print(response)
+```
+
+### Building Block Example (Chunking Only)
+
+```python
+from hayagriva.config import ChunkingConfig
+from hayagriva.core.chunker import WordChunker
+
+chunker = WordChunker(ChunkingConfig(chunk_size=8, overlap=2))
+chunks, metadata = chunker.chunk([
+    "Hayagriva restores knowledge and RAG retrieves context before generation."
+])
+
+print(chunks)
+print(metadata)
 ```
 
 ### Structured Response (Answer + Metadata)
@@ -140,26 +183,10 @@ for token in rag.ask("Who is Hayagriva?"):
 
 ---
 
-## CLI Usage
-
-### Ingest Files
-
-```bash
-hayagriva ingest ./docs
-```
-
-### Query
-
-```bash
-hayagriva query "What is RAG?"
-```
-
----
-
 ## Requirements
 
 * Python 3.10+
-* API key for Groq or OpenAI
+* API key for Groq
 
 Optional (only if you use local embeddings or FAISS):
 
@@ -169,7 +196,6 @@ Optional (only if you use local embeddings or FAISS):
 If using external vector databases:
 
 * weaviate-client
-* pinecone-client
 
 ---
 

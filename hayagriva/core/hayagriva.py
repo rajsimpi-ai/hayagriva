@@ -12,12 +12,9 @@ from hayagriva.core.chunker import (
 )
 from hayagriva.core.context_builder import build_context
 from hayagriva.core.embeddings import SentenceTransformerEmbeddings
-from hayagriva.core.generator import OpenAIGenerator
 from hayagriva.core.pipeline import build_prompt
 from hayagriva.core.retriever import Retriever
-from hayagriva.core.vectorstore import FaissVectorStore
-from hayagriva.core.pinecone_store import PineconeVectorStore
-from hayagriva.core.weaviate_store import WeaviateVectorStore
+from hayagriva.core.vectorstores import FaissVectorStore, WeaviateVectorStore
 from hayagriva.utils.logger import get_logger
 from hayagriva.utils.validator import ensure_texts
 
@@ -48,25 +45,19 @@ class Hayagriva:
         
         if self.config.vector_store == "weaviate":
             self.vector_store = WeaviateVectorStore(self.config.weaviate)
-        elif self.config.vector_store == "pinecone":
-            self.vector_store = PineconeVectorStore(self.config.pinecone)
-        else:
+        elif self.config.vector_store == "faiss":
             self.vector_store = FaissVectorStore()
+        else:
+            raise ValueError(f"Unknown vector store: {self.config.vector_store}")
             
         self.retriever = Retriever(
             self.embedder, self.vector_store, self.config.retrieval
         )
 
         # Backend selection
-        if self.config.backend == "openai":
-            from .generator import OpenAIGenerator
-            self.generator = OpenAIGenerator(
-                api_key=self.config.api_key,
-                model=self.config.model,
-            )
+        if self.config.backend == "groq":
+            from hayagriva.core.generators import GroqGenerator
 
-        elif self.config.backend == "groq":
-            from .groq_generator import GroqGenerator
             self.generator = GroqGenerator(
                 api_key=self.config.api_key,
                 model=self.config.model,

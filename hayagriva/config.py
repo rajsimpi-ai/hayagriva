@@ -8,9 +8,6 @@ class ModelConfig:
     """Configuration for embedding and generation models."""
 
     embedding_model: str = "all-MiniLM-L6-v2"
-    llm_model: str = "gpt-4o"
-    vector_store: str = "faiss"
-    openai_api_key: Optional[str] = None
 
 
 @dataclass
@@ -44,41 +41,26 @@ class WeaviateConfig:
     index_name: str = "HayagrivaDocs"
 
 
-@dataclass
-class PineconeConfig:
-    """Configuration for Pinecone vector store."""
-    
-    api_key: Optional[str] = None
-    host: Optional[str] = None     # Direct host URL for the index (skips discovery)
-    environment: str = "us-west1-gcp"  # Legacy
-    index_name: str = "hayagriva-index"
-    dimension: int = 384
-    metric: str = "cosine"
-
-
-@dataclass
 class HayagrivaConfig:
     def __init__(
         self,
-        backend="openai",
+        backend="groq",
         api_key=None,
-        model="gpt-4o-mini",
+        model="llama-3.1-8b-instant",
         embedding_model="all-MiniLM-L6-v2",
         vector_store="faiss",
         weaviate=None,
-        pinecone=None,
         chunking=None,
         models=None,
         retrieval=None,
     ):
-        self.backend = backend        # "openai" or "groq"
+        self.backend = backend        # "groq"
         self.api_key = api_key        # API key for chosen backend
         self.model = model            # model name for backend
-        self.vector_store = vector_store # "faiss", "weaviate", or "pinecone"
+        self.vector_store = vector_store # "faiss" or "weaviate"
 
         # Existing config objects
         self.chunking = chunking or ChunkingConfig()
         self.models = models or ModelConfig(embedding_model=embedding_model)
         self.retrieval = retrieval or RetrievalConfig()
         self.weaviate = weaviate or WeaviateConfig()
-        self.pinecone = pinecone or PineconeConfig()

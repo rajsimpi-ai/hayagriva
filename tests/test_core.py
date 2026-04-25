@@ -1,4 +1,3 @@
-import importlib.util
 import unittest
 
 from hayagriva.config import ChunkingConfig
@@ -10,8 +9,9 @@ class TestChunker(unittest.TestCase):
     def test_chunker_respects_window(self):
         config = ChunkingConfig(chunk_size=3, overlap=1)
         chunker = WordChunker(config)
-        chunks = chunker.chunk(["one two three four five six"])
+        chunks, metadata = chunker.chunk(["one two three four five six"])
         self.assertEqual(chunks, ["one two three", "three four five", "five six"])
+        self.assertEqual(metadata, [{}, {}, {}])
 
 
 class TestPipeline(unittest.TestCase):

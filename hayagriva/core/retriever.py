@@ -5,7 +5,6 @@ from typing import Iterable, List, Tuple
 
 from hayagriva.config import RetrievalConfig
 from hayagriva.core.embeddings import SentenceTransformerEmbeddings
-from hayagriva.core.vectorstore import FaissVectorStore
 from hayagriva.utils.logger import get_logger
 from hayagriva.utils.validator import validate_top_k
 
@@ -18,7 +17,7 @@ class Retriever:
     def __init__(
         self,
         embedder: SentenceTransformerEmbeddings,
-        vector_store: FaissVectorStore,
+        vector_store,
         config: RetrievalConfig | None = None,
     ) -> None:
         self.embedder = embedder
