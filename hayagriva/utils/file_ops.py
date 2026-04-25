@@ -6,7 +6,19 @@ from hayagriva.exceptions import IngestionError
 
 
 def read_text_files(paths: Iterable[str]) -> List[str]:
-    """Read text content from paths."""
+    """Read UTF-8 text from files and directories.
+
+    Args:
+        paths: Iterable of filesystem paths. File paths are read directly.
+            Directory paths are searched recursively for ``*.txt`` files.
+
+    Returns:
+        Text content from all discovered files.
+
+    Raises:
+        IngestionError: If any path does not exist.
+        OSError: If a file cannot be read.
+    """
 
     contents: List[str] = []
     for raw_path in paths:

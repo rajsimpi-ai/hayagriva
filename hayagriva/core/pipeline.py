@@ -9,12 +9,27 @@ from hayagriva.core.context_builder import build_context
 
 @dataclass
 class RetrievalResult:
+    """Container for retrieval output.
+
+    Attributes:
+        context: Context string assembled from retrieved chunks.
+        sources: Source identifiers or labels associated with the context.
+    """
+
     context: str
     sources: List[str]
 
 
 def build_prompt(question: str, contexts: Iterable[str]) -> str:
-    """Compose a simple prompt from question and contexts."""
+    """Compose a RAG prompt from a question and retrieved contexts.
+
+    Args:
+        question: User question to answer.
+        contexts: Retrieved context chunks to include in the prompt.
+
+    Returns:
+        Prompt string suitable for a chat-completion model.
+    """
 
     context_block = build_context(contexts)
     return (

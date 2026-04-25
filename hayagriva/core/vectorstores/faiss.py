@@ -12,9 +12,32 @@ logger = get_logger(__name__)
 
 
 class FaissVectorStore:
-    """A lightweight FAISS wrapper using inner-product search."""
+    """A lightweight in-memory FAISS vector store.
+
+    The store normalizes vectors and uses FAISS ``IndexFlatIP`` so scores are
+    cosine-like inner products for normalized embeddings.
+
+    Attributes:
+        faiss: Imported FAISS module.
+        index: FAISS index, initialized lazily on first ``add``.
+        vectors: Normalized vectors added to the store.
+        chunks: Chunk text aligned with stored vectors.
+        metadata: Metadata dictionaries aligned with stored vectors.
+
+    Raises:
+        MissingDependencyError: If ``faiss-cpu`` or ``faiss-gpu`` is not
+            installed.
+    """
 
     def __init__(self) -> None:
+        """Initialize an empty FAISS index wrapper.
+
+        The underlying FAISS index is created lazily when vectors are first
+        added, because the embedding dimension is not known before then.
+
+        Raises:
+            MissingDependencyError: If FAISS is not installed.
+        """
         if importlib.util.find_spec("faiss") is None:
             raise MissingDependencyError(
                 "faiss-cpu is required for the FAISS vector store. Install with `pip install faiss-cpu`."
@@ -28,6 +51,17 @@ class FaissVectorStore:
         self.metadata: List[dict] = []
 
     def add(self, embeddings, chunks: Sequence[str], metadata: Sequence[dict] | None = None) -> None:
+        """Add embedded chunks to the FAISS index.
+
+        Args:
+            embeddings: Two-dimensional NumPy array of chunk embeddings.
+            chunks: Chunk text aligned with ``embeddings``.
+            metadata: Optional metadata dictionaries aligned with ``chunks``.
+
+        Raises:
+            ValueError: If embeddings, chunks, and metadata lengths do not
+                match.
+        """
         if len(embeddings) != len(chunks):
             raise ValueError("Embeddings and chunks length mismatch")
         if embeddings.size == 0:
@@ -55,6 +89,19 @@ class FaissVectorStore:
         query_text: str = "",
         **kwargs,
     ) -> List[Tuple[str, float]]:
+        """Search the index for chunks nearest to a query vector.
+
+        Args:
+            query_embedding: One-dimensional query embedding.
+            top_k: Maximum number of chunks to return.
+            query_text: Unused text query argument accepted for retriever
+                compatibility.
+            **kwargs: Additional unused search options accepted for
+                compatibility with other vector stores.
+
+        Returns:
+            List of ``(chunk_text, score)`` pairs sorted by FAISS score.
+        """
         if self.index is None or len(self.chunks) == 0:
             return []
         normalized = self._normalize(query_embedding.reshape(1, -1))
@@ -68,6 +115,17 @@ class FaissVectorStore:
         return results
 
     def _normalize(self, vectors):
+        """Normalize vectors row-wise for cosine-style inner-product search.
+
+        Args:
+            vectors: Two-dimensional NumPy array.
+
+        Returns:
+            Row-normalized NumPy array.
+
+        Raises:
+            MissingDependencyError: If NumPy is not installed.
+        """
         if importlib.util.find_spec("numpy") is None:
             raise MissingDependencyError("numpy is required for vector operations.")
         import numpy as np

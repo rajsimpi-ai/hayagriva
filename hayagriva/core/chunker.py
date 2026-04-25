@@ -12,20 +12,54 @@ logger = get_logger(__name__)
 
 
 class BaseChunker:
-    """Base class for chunkers."""
+    """Base class for document chunkers.
+
+    Args:
+        config: Optional chunking configuration. If omitted, default
+            ``ChunkingConfig`` values are used.
+
+    Attributes:
+        config: Effective chunking configuration used by the chunker.
+    """
     
     def __init__(self, config: ChunkingConfig | None = None) -> None:
+        """Initialize the chunker with explicit or default configuration.
+
+        Args:
+            config: Optional chunking configuration.
+        """
         self.config = config or ChunkingConfig()
 
     def chunk(self, documents: Iterable[str]) -> Tuple[List[str], List[dict]]:
-        """Return chunks and corresponding metadata."""
+        """Split documents into chunks and metadata records.
+
+        Args:
+            documents: Iterable of raw document strings.
+
+        Returns:
+            A tuple ``(chunks, metadata)`` where ``chunks`` contains chunk text
+            and ``metadata`` contains one metadata dictionary per chunk.
+
+        Raises:
+            NotImplementedError: Always raised by the base class.
+        """
         raise NotImplementedError
 
 
 class WordChunker(BaseChunker):
-    """Chunk text using a whitespace-based window."""
+    """Chunk text using a sliding whitespace word window."""
 
     def chunk(self, documents: Iterable[str]) -> Tuple[List[str], List[dict]]:
+        """Split documents into overlapping word chunks.
+
+        Args:
+            documents: Iterable of raw document strings.
+
+        Returns:
+            A tuple of chunk text and empty metadata dictionaries. Each chunk
+            contains up to ``config.chunk_size`` words and shares
+            ``config.overlap`` words with the previous chunk when possible.
+        """
         chunks: List[str] = []
         metadata: List[dict] = []
         
@@ -45,9 +79,19 @@ class WordChunker(BaseChunker):
 
 
 class RecursiveChunker(BaseChunker):
-    """Recursively chunk text using a list of separators."""
+    """Chunk text recursively using an ordered separator list."""
 
     def chunk(self, documents: Iterable[str]) -> Tuple[List[str], List[dict]]:
+        """Split documents by progressively smaller separators.
+
+        Args:
+            documents: Iterable of raw document strings.
+
+        Returns:
+            A tuple of chunk text and empty metadata dictionaries. The splitter
+            prefers larger separators first, then falls back to smaller
+            separators when a segment exceeds ``config.chunk_size``.
+        """
         chunks: List[str] = []
         metadata: List[dict] = []
         
@@ -61,7 +105,16 @@ class RecursiveChunker(BaseChunker):
         return chunks, metadata
 
     def _recursive_split(self, text: str, separators: List[str], chunk_size: int) -> List[str]:
-        """Split text recursively."""
+        """Recursively split one document into chunk-sized segments.
+
+        Args:
+            text: Text segment to split.
+            separators: Ordered separators still available for splitting.
+            chunk_size: Target chunk size in approximate words.
+
+        Returns:
+            A list of text chunks.
+        """
         final_chunks = []
         
         # Get the current separator
@@ -129,13 +182,31 @@ class RecursiveChunker(BaseChunker):
 
 
 class SemanticChunker(BaseChunker):
-    """Chunk text based on semantic similarity between sentences."""
+    """Chunk text based on semantic similarity between adjacent sentences."""
     
     def __init__(self, config: ChunkingConfig | None = None, embedder: Optional[SentenceTransformerEmbeddings] = None) -> None:
+        """Initialize a semantic chunker.
+
+        Args:
+            config: Optional chunking configuration.
+            embedder: Embedder used to calculate sentence vectors. This is
+                required before ``chunk`` can run.
+        """
         super().__init__(config)
         self.embedder = embedder
         
     def chunk(self, documents: Iterable[str]) -> Tuple[List[str], List[dict]]:
+        """Split documents where adjacent sentence similarity drops.
+
+        Args:
+            documents: Iterable of raw document strings.
+
+        Returns:
+            A tuple of semantic chunks and empty metadata dictionaries.
+
+        Raises:
+            ValueError: If no embedder was provided.
+        """
         if not self.embedder:
             raise ValueError("SemanticChunker requires an embedder.")
             
@@ -183,9 +254,19 @@ class SemanticChunker(BaseChunker):
 
 
 class HierarchicalChunker(BaseChunker):
-    """Create parent chunks and child chunks."""
+    """Create child chunks while preserving larger parent chunk context."""
     
     def chunk(self, documents: Iterable[str]) -> Tuple[List[str], List[dict]]:
+        """Split documents into parent chunks and then child chunks.
+
+        Args:
+            documents: Iterable of raw document strings.
+
+        Returns:
+            A tuple ``(child_chunks, metadata)``. Each metadata record contains
+            ``parent_text`` with the larger source chunk that produced the
+            returned child chunk.
+        """
         chunks: List[str] = []
         metadata: List[dict] = []
         

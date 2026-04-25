@@ -9,10 +9,11 @@ LOGGER_NAME = "hayagriva"
 def get_logger(name: Optional[str] = None) -> logging.Logger:
     """Return a configured logger.
 
-    Parameters
-    ----------
-    name: Optional[str]
-        Name for the logger. Defaults to the package-wide name.
+    Args:
+        name: Logger name. Defaults to the package-wide logger name.
+
+    Returns:
+        Configured ``logging.Logger`` instance with a stream handler.
     """
 
     logger = logging.getLogger(name or LOGGER_NAME)

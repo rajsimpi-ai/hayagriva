@@ -9,6 +9,17 @@ if TYPE_CHECKING:
 
 
 def __getattr__(name: str):
+    """Lazily expose generator classes without importing provider SDKs early.
+
+    Args:
+        name: Attribute name requested from this module.
+
+    Returns:
+        Requested generator class.
+
+    Raises:
+        AttributeError: If ``name`` is not exported by this module.
+    """
     if name == "GroqGenerator":
         from hayagriva.core.generators.groq import GroqGenerator
 

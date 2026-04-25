@@ -14,9 +14,28 @@ logger = get_logger(__name__)
 
 
 class WeaviateVectorStore:
-    """Weaviate vector store wrapper."""
+    """Weaviate vector store wrapper.
+
+    Args:
+        config: Weaviate connection and class configuration.
+
+    Attributes:
+        config: Effective Weaviate configuration.
+        client: Weaviate v3 client instance.
+
+    Raises:
+        MissingDependencyError: If ``weaviate-client`` is not installed.
+    """
 
     def __init__(self, config: WeaviateConfig) -> None:
+        """Connect to Weaviate and ensure the target class exists.
+
+        Args:
+            config: Weaviate connection and class configuration.
+
+        Raises:
+            MissingDependencyError: If ``weaviate-client`` is not installed.
+        """
         if importlib.util.find_spec("weaviate") is None:
             raise MissingDependencyError(
                 "weaviate-client is required for Weaviate support. Install with `pip install weaviate-client`."
@@ -34,7 +53,11 @@ class WeaviateVectorStore:
         self._ensure_schema()
 
     def _ensure_schema(self):
-        """Ensure the class exists in Weaviate."""
+        """Create the configured Weaviate class if it does not exist.
+
+        The class disables Weaviate-side vectorization because Hayagriva
+        supplies vectors directly.
+        """
         class_obj = {
             "class": self.config.index_name,
             "vectorizer": "none",
@@ -55,7 +78,17 @@ class WeaviateVectorStore:
             logger.info("Created Weaviate class: %s", self.config.index_name)
 
     def add(self, embeddings, chunks: Sequence[str], metadata: Sequence[dict] | None = None) -> None:
-        """Add embeddings and chunks to Weaviate."""
+        """Add embedded chunks to Weaviate.
+
+        Args:
+            embeddings: Two-dimensional array-like object of chunk embeddings.
+            chunks: Chunk text aligned with ``embeddings``.
+            metadata: Optional metadata dictionaries. ``parent_text`` is stored
+                when present.
+
+        Raises:
+            ValueError: If embeddings and chunks have different lengths.
+        """
         if len(embeddings) != len(chunks):
             raise ValueError("Embeddings and chunks length mismatch")
 
@@ -92,7 +125,22 @@ class WeaviateVectorStore:
         query_text: str = "",
         **kwargs,
     ) -> List[Tuple[str, float]]:
-        """Search for similar documents using vector, bm25, or hybrid search."""
+        """Search Weaviate using vector, BM25, or hybrid retrieval.
+
+        Args:
+            query_embedding: Query embedding used by vector and hybrid search.
+            top_k: Maximum number of chunks to return.
+            query_text: Raw query text used by BM25 and hybrid search.
+            **kwargs: Search options. Supported keys are ``strategy`` and
+                ``alpha``.
+
+        Returns:
+            List of ``(chunk_text, score)`` pairs.
+
+        Raises:
+            ValueError: If ``strategy`` is not ``"vector"``, ``"bm25"``, or
+                ``"hybrid"``.
+        """
         strategy = kwargs.get("strategy", "vector")
         alpha = kwargs.get("alpha", 0.5)
 
