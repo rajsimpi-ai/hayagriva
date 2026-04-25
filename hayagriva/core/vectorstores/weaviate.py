@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import importlib.util
 import uuid
-from typing import List, Sequence, Tuple
+from typing import Any, List, Sequence, Tuple
 
 from hayagriva.config import WeaviateConfig
 from hayagriva.exceptions import MissingDependencyError
@@ -52,7 +52,7 @@ class WeaviateVectorStore:
 
         self._ensure_schema()
 
-    def _ensure_schema(self):
+    def _ensure_schema(self) -> None:
         """Create the configured Weaviate class if it does not exist.
 
         The class disables Weaviate-side vectorization because Hayagriva
@@ -77,7 +77,7 @@ class WeaviateVectorStore:
             self.client.schema.create_class(class_obj)
             logger.info("Created Weaviate class: %s", self.config.index_name)
 
-    def add(self, embeddings, chunks: Sequence[str], metadata: Sequence[dict] | None = None) -> None:
+    def add(self, embeddings: Any, chunks: Sequence[str], metadata: Sequence[dict] | None = None) -> None:
         """Add embedded chunks to Weaviate.
 
         Args:
@@ -120,10 +120,10 @@ class WeaviateVectorStore:
 
     def search(
         self,
-        query_embedding,
+        query_embedding: Any,
         top_k: int = 4,
         query_text: str = "",
-        **kwargs,
+        **kwargs: Any,
     ) -> List[Tuple[str, float]]:
         """Search Weaviate using vector, BM25, or hybrid retrieval.
 

@@ -1,7 +1,7 @@
 # hayagriva/core/hayagriva.py
 
 from __future__ import annotations
-from typing import Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, Union
 
 from hayagriva.config import HayagrivaConfig
 from hayagriva.core.chunker import (
@@ -125,7 +125,7 @@ class Hayagriva:
 
         self.retriever.add(chunks, metadata)
 
-    def ask(self, question: str, return_metadata: bool = False):
+    def ask(self, question: str, return_metadata: bool = False) -> Union[str, Dict[str, Any]]:
         """Answer a question using retrieval + generation.
 
         Args:

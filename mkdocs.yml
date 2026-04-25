@@ -1,0 +1,39 @@
+site_name: Hayagriva
+site_description: Modular RAG framework with Groq, FAISS, and Weaviate.
+site_url: https://rajsimpi-ai.github.io/hayagriva/
+repo_url: https://github.com/rajsimpi-ai/hayagriva
+repo_name: rajsimpi-ai/hayagriva
+
+theme:
+  name: material
+  palette:
+    scheme: dark
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.highlight
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Configuration: getting-started/configuration.md
+  - Guides:
+      - Basic RAG: guides/basic-rag.md
+      - Ingestion: guides/ingestion.md
+      - Chunking: guides/chunking.md
+      - Vector Stores: guides/vectorstores.md
+  - Examples: examples/index.md
+  - API Reference: reference/api.md

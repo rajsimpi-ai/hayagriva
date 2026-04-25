@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
-from typing import List, Sequence, Tuple
+from typing import Any, List, Sequence, Tuple
 
 from hayagriva.exceptions import MissingDependencyError
 from hayagriva.utils.logger import get_logger
@@ -50,7 +50,7 @@ class FaissVectorStore:
         self.chunks: List[str] = []
         self.metadata: List[dict] = []
 
-    def add(self, embeddings, chunks: Sequence[str], metadata: Sequence[dict] | None = None) -> None:
+    def add(self, embeddings: Any, chunks: Sequence[str], metadata: Sequence[dict] | None = None) -> None:
         """Add embedded chunks to the FAISS index.
 
         Args:
@@ -84,10 +84,10 @@ class FaissVectorStore:
 
     def search(
         self,
-        query_embedding,
+        query_embedding: Any,
         top_k: int = 4,
         query_text: str = "",
-        **kwargs,
+        **kwargs: Any,
     ) -> List[Tuple[str, float]]:
         """Search the index for chunks nearest to a query vector.
 
@@ -114,7 +114,7 @@ class FaissVectorStore:
                 results.append((self.chunks[idx], float(score)))
         return results
 
-    def _normalize(self, vectors):
+    def _normalize(self, vectors: Any) -> Any:
         """Normalize vectors row-wise for cosine-style inner-product search.
 
         Args:

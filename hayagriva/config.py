@@ -103,16 +103,16 @@ class HayagrivaConfig:
 
     def __init__(
         self,
-        backend="groq",
-        api_key=None,
-        model="llama-3.1-8b-instant",
-        embedding_model="all-MiniLM-L6-v2",
-        vector_store="faiss",
-        weaviate=None,
-        chunking=None,
-        models=None,
-        retrieval=None,
-    ):
+        backend: str = "groq",
+        api_key: Optional[str] = None,
+        model: str = "llama-3.1-8b-instant",
+        embedding_model: str = "all-MiniLM-L6-v2",
+        vector_store: str = "faiss",
+        weaviate: Optional[WeaviateConfig] = None,
+        chunking: Optional[ChunkingConfig] = None,
+        models: Optional[ModelConfig] = None,
+        retrieval: Optional[RetrievalConfig] = None,
+    ) -> None:
         """Create a top-level Hayagriva configuration object.
 
         Args:

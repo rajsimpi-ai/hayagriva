@@ -1,7 +1,7 @@
 """Retriever implementations."""
 from __future__ import annotations
 
-from typing import Iterable, List, Tuple
+from typing import Any, Iterable, List, Tuple
 
 from hayagriva.config import RetrievalConfig
 from hayagriva.core.embeddings import SentenceTransformerEmbeddings
@@ -28,7 +28,7 @@ class Retriever:
     def __init__(
         self,
         embedder: SentenceTransformerEmbeddings,
-        vector_store,
+        vector_store: Any,
         config: RetrievalConfig | None = None,
     ) -> None:
         """Initialize a retriever with an embedder and vector store.

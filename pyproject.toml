@@ -22,6 +22,11 @@ cuda = [
     "sentence-transformers",
     "faiss-gpu",
 ]
+docs = [
+    "mkdocs",
+    "mkdocs-material",
+    "mkdocstrings[python]",
+]
 
 [project.urls]
 Homepage = "https://github.com/rajsimpi-ai/hayagriva"

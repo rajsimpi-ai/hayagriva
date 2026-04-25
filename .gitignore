@@ -7,6 +7,7 @@ __pycache__/
 .dist/
 dist/
 build/
+site/
 .DS_Store
 docker-compose.yml
 test.py
