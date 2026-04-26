@@ -1,0 +1,7 @@
+numpy
+groq
+weaviate-client<4
+
+# Optional dependencies (install via pip install hayagriva[cpu] or hayagriva[cuda])
+# sentence-transformers
+# faiss-cpu

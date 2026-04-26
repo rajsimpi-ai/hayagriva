@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.env
+.venv
+.cache
+*.egg-info/
+.dist/
+dist/
+build/
+.DS_Store
+docker-compose.yml
+test.py
+test_weaviate.py
+test_embedding.py
+test-*.py
+.code-workspace
+publish.sh
